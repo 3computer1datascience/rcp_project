@@ -1,9 +1,11 @@
 import streamlit as st
 import pages
 
+if "page" not in st.session_state:
+    st.session_state["page"] = "home"
 # 페이지 함수
 if st.session_state.page == "home":
-    pages.main()
+    pages.start_page()
 elif st.session_state.page == "game":
     pages.game_clicked_page()
 elif st.session_state.page == "user":

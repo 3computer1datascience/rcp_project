@@ -9,7 +9,7 @@ CSV_FILE = "users.csv"
 # CSV 초기화 (처음 실행 시 파일 없으면 생성)
 def init_csv():
     if not os.path.exists(CSV_FILE):
-        df = pd.DataFrame(columns=["name", "win", "draw", "lose"])
+        df = pd.DataFrame(columns=["name", "win", "draw", "lose" , "rock", "scissors", "paper"])
         df.to_csv(CSV_FILE, index=False)
 
 init_csv()
@@ -24,7 +24,7 @@ def save_user(name):
         df = pd.DataFrame(columns=["name"])
     
     # 새로운 사용자 추가
-    new_row = pd.DataFrame([{"name": name, "win": 0, "draw": 0, "lose": 0}])
+    new_row = pd.DataFrame([{"name": name, "win": 0, "draw": 0, "lose": 0, "rock": 0, "scissors": 0, "paper": 0}])
     df = pd.concat([df, new_row], ignore_index=True)
 
     # CSV로 저장
@@ -36,13 +36,30 @@ def is_duplicate_user(name):
         return name in df['name'].values
     except FileNotFoundError:
         return False
-    
+
+def update_user_choice(name, choice):
+    # CSV 로드
+    if os.path.exists(CSV_FILE):
+        df = pd.read_csv(CSV_FILE)
+    else:
+        df = pd.DataFrame(columns=["name", "win", "draw", "lose","rock","scissors","paper"])
+
+    if name in df["name"].values:
+        idx = df[df["name"] == name].index[0]
+
+    if choice == "rock":
+        df.at[idx,"rock"] += 1
+    elif choice == "scissors":
+        df.at[idx,"scissors"] += 1
+    elif choice == "paper":
+        df.at[idx,"paper"] +=1
+
 def update_user_record(name, result):
     # CSV 로드
     if os.path.exists(CSV_FILE):
         df = pd.read_csv(CSV_FILE)
     else:
-        df = pd.DataFrame(columns=["name", "win", "draw", "lose"])
+        df = pd.DataFrame(columns=["name", "win", "draw", "lose","rock","scissors","paper"])
 
     # 유저 row가 존재하는지 확인
     if name in df["name"].values:
@@ -60,7 +77,7 @@ def update_user_record(name, result):
     df.to_csv(CSV_FILE, index=False)
     
     st.session_state.record_update = False
-    
+
 
 # 사용자 목록 불러오기
 def get_users():
@@ -92,7 +109,7 @@ def judge_win(human, ai):
         return "🤖 AI 승리!"
     
 # 시작 페이지
-def main():
+def start_page():
     # 제목 및 설명
     st.markdown("""
         <div style='text-align: center;'>
@@ -209,8 +226,11 @@ def user_info_page():
             win = row["win"]
             draw = row["draw"]
             lose = row["lose"]
+            rock = row["rock"]
+            scissors = row["scissors"]
+            paper = row["paper"]
 
-            st.markdown(f"<h4 style='text-align:center;'> 총 {win+draw+lose}게임 중에서 {win}번 승리하고 {draw}번 비기고 {lose}번 졌습니다. </h3>" , unsafe_allow_html=True)
+            st.markdown(f"<h4 style='text-align:center;'> 총 {win+draw+lose}게임 중에서 {win}번 승리하고 {draw}번 비기고 {lose}번 졌습니다.<br>입력값으로는 가위를 {scissors}번 바위를 {rock}번 보를 {paper}번 사용했습니다.<br>가위바위보 할 때 앞이 가위,바위 였으면 보를 내시면 ?%확률로 이길 수 있습니다. </h3>" , unsafe_allow_html=True)
             break
 
 # 종료 페이지
@@ -383,13 +403,12 @@ def rcp_game_page2():
                 st.empty()
         with top_col2:
             st.markdown("<h3 style='text-align:center;'> AI <br></h3>", unsafe_allow_html=True)
-
+ 
         # 타이머 종료 처리
         if remaining == 0 or st.session_state.human_choice is not None:
             st.session_state.ai_choice = random.choice(["scissors", "rock", "paper"])
             if st.session_state.human_choice is None:
                 st.session_state.human_choice = random.choice(["scissors", "rock", "paper"])
-
             set_page("rcp3")
             st.rerun()
 
@@ -433,6 +452,7 @@ def rcp_game_page3():
 
     st.session_state.record_update = True
     if st.session_state.record_update == True:
+        update_user_choice(st.session_state.confirmed_user, st.session_state.human_choice)
         update_user_record(st.session_state.confirmed_user, result)
 
     if st.button("계속하기"):

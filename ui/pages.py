@@ -67,11 +67,11 @@ def update_user_record(name, result):
 
     # 결과 업데이트
     if result == "🎉 인간 승리!":
-        df.at[idx, "win"] += 1
+        df.at[idx, "win"] += 0.5
     elif result == "무승부 🤝":
-        df.at[idx, "draw"] += 1
+        df.at[idx, "draw"] += 0.5
     elif result == "🤖 AI 승리!":
-        df.at[idx, "lose"] += 1
+        df.at[idx, "lose"] += 0.5
 
     # 다시 저장
     df.to_csv(CSV_FILE, index=False)
@@ -230,8 +230,13 @@ def user_info_page():
             scissors = row["scissors"]
             paper = row["paper"]
 
-            st.markdown(f"<h4 style='text-align:center;'> 총 {win+draw+lose}게임 중에서 {win}번 승리하고 {draw}번 비기고 {lose}번 졌습니다.<br>입력값으로는 가위를 {scissors}번 바위를 {rock}번 보를 {paper}번 사용했습니다.<br>가위바위보 할 때 앞이 가위,바위 였으면 보를 내시면 ?%확률로 이길 수 있습니다. </h3>" , unsafe_allow_html=True)
+            st.markdown(
+    f"<h4 style='text-align:center;'> 총 {int(win) + int(draw) + int(lose)}게임 중에서 {int(win)}번 승리하고 {int(draw)}번 비기고 {int(lose)}번 졌습니다.<br>"
+    f"입력값으로는 가위를 {int(scissors)}번 바위를 {int(rock)}번 보를 {int(paper)}번 사용했습니다.<br>"
+    "가위바위보 할 때 앞이 가위,바위 였으면 보를 내시면 ?%확률로 이길 수 있습니다. </h4>", 
+    unsafe_allow_html=True)
             break
+
 
 # 종료 페이지
 def exit_clicked_page():
@@ -449,7 +454,6 @@ def rcp_game_page3():
 
     result = judge_win(st.session_state.human_choice, st.session_state.ai_choice)
     st.success(f"🏆 결과: {result}")
-
     st.session_state.record_update = True
     if st.session_state.record_update == True:
         update_user_choice(st.session_state.confirmed_user, st.session_state.human_choice)
